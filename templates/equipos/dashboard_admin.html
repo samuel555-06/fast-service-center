@@ -1,0 +1,85 @@
+{% extends 'equipos/base_staff.html' %}
+
+{% block title %}Panel general — Taller Familiar{% endblock %}
+
+{% block content %}
+  <div class="page-head">
+  <div>
+    <h1>Panel general</h1>
+    <p>Equipos activos en el taller</p>
+  </div>
+  <div style="display:flex; gap:10px;">
+    <a href="{% url 'equipos:consultas_clientes' %}" class="btn btn-ghost">Consultas</a>
+    <a href="{% url 'equipos:reportes_marcas' %}" class="btn btn-ghost">Reportes por marca</a>
+    <a href="{% url 'cuentas:gestionar_tecnicos' %}" class="btn btn-ghost">Técnicos</a>
+    <a href="{% url 'equipos:ingresar_equipo' %}" class="btn btn-amber">+ Ingresar equipo</a>
+  </div>
+</div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <h3>Equipos en el taller</h3>
+    </div>
+    {% if equipos %}
+      <table>
+        <thead>
+          <tr>
+            <th>Orden</th>
+            <th>Cliente</th>
+            <th>Equipo</th>
+            <th>Estado</th>
+            <th>Técnico</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for equipo in equipos %}
+            <tr>
+              <td class="mono">{{ equipo.numero_orden }}</td>
+              <td class="cliente-cell">
+                <span class="nombre">{{ equipo.cliente.nombre_completo }}</span>
+                <span class="cedula">{{ equipo.cliente.cedula }}</span>
+              </td>
+              <td>
+                {{ equipo.marca }} {{ equipo.modelo }}
+                {% if equipo.tiene_garantia %}
+                  <span class="badge b-garantia">Garantía</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if equipo.estado == 'INGRESADO' %}
+                  <span class="badge b-ingresado"><span class="badge-dot"></span>Ingresado</span>
+                {% elif equipo.estado == 'MESA_TRABAJO' %}
+                  <span class="badge b-mesa"><span class="badge-dot"></span>Mesa de trabajo</span>
+                {% elif equipo.estado == 'REPARADO' %}
+                  <span class="badge b-reparado"><span class="badge-dot"></span>Reparado</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if equipo.tecnico_asignado %}
+                  {{ equipo.tecnico_asignado.get_full_name|default:equipo.tecnico_asignado.username }}
+                {% else %}
+                  <span style="color:#B0B8C1;">Sin asignar</span>
+                {% endif %}
+              </td>
+              <td style="white-space:nowrap;">
+                {% if not equipo.tecnico_asignado %}
+                  <a href="{% url 'equipos:transferir_equipo' equipo.id %}" class="btn btn-ghost btn-sm">Transferir</a>
+                {% else %}
+                  <a href="{% url 'equipos:detalle_equipo' equipo.id %}" class="btn btn-ghost btn-sm">Ver</a>
+                  {% if equipo.estado == 'REPARADO' %}
+                    <a href="{% url 'equipos:notificar_cliente' equipo.id %}" class="btn btn-amber btn-sm">Notificar</a>
+                  {% endif %}
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="empty-state">
+        <p>No hay equipos activos en el taller.</p>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}

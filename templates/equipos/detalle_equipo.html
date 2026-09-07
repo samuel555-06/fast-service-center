@@ -1,0 +1,144 @@
+{% extends 'equipos/base_staff.html' %}
+
+{% block title %}{{ equipo.numero_orden }} — Fast Service Center{% endblock %}
+
+{% block extra_style %}
+<style>
+  .grid-detalle{display:grid; grid-template-columns:2fr 1fr; gap:20px; align-items:start;}
+  @media (max-width: 760px) {
+    .grid-detalle{grid-template-columns:1fr;}
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+  <div class="page-head">
+    <div>
+      <h1>{{ equipo.marca }} {{ equipo.modelo }}</h1>
+      <p>Orden <span class="mono">{{ equipo.numero_orden }}</span> — {{ equipo.cliente.nombre_completo }}</p>
+    </div>
+    {% if user.es_administrador %}
+      <a href="{% url 'equipos:descargar_reporte_cliente' equipo.id %}" class="btn btn-ghost">Descargar reporte PDF</a>
+    {% endif %}
+  </div>
+
+  <div class="grid-detalle">
+    <div style="display:flex; flex-direction:column; gap:20px;">
+
+      <div class="panel">
+        <div class="panel-head"><h3>Falla reportada</h3></div>
+        <div class="panel-body">
+          <p style="margin:0; font-size:14px; line-height:1.6;">{{ equipo.falla_reportada }}</p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h3>Evidencias de reparación</h3></div>
+        <div class="panel-body">
+          {% if equipo.evidencias.all %}
+            <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:16px;">
+              {% for ev in equipo.evidencias.all %}
+                <a href="{{ ev.imagen.url }}" target="_blank">
+                  <img src="{{ ev.imagen.url }}" style="width:100%; aspect-ratio:1; object-fit:cover; border-radius:8px; border:1px solid var(--line);">
+                </a>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p style="color:#8593A3; font-size:14px;">Aún no hay evidencias adjuntas.</p>
+          {% endif %}
+
+          {% if user.es_tecnico %}
+            <form method="post" enctype="multipart/form-data" action="{% url 'equipos:adjuntar_evidencia' equipo.id %}">
+              {% csrf_token %}
+              <div class="field">
+                <label for="imagen">Adjuntar nueva evidencia</label>
+                <input type="file" name="imagen" id="imagen" accept="image/*" required>
+              </div>
+              <div class="field">
+                <label for="descripcion">Descripción (opcional)</label>
+                <input type="text" name="descripcion" id="descripcion">
+              </div>
+              <button type="submit" class="btn btn-ghost btn-sm">Subir evidencia</button>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h3>Reporte de estado</h3></div>
+        <div class="panel-body">
+          {% if user.es_tecnico %}
+            <form method="post" action="{% url 'equipos:agregar_reporte' equipo.id %}" style="margin-bottom:20px;">
+              {% csrf_token %}
+              <div class="field">
+                <label for="descripcion_reporte">Nuevo reporte de avance</label>
+                <textarea name="descripcion" id="descripcion_reporte" rows="3" required></textarea>
+              </div>
+              <button type="submit" class="btn btn-ghost btn-sm">Guardar reporte</button>
+            </form>
+          {% endif %}
+
+          {% for reporte in equipo.reportes.all %}
+            <div style="border-top:1px solid var(--line); padding-top:14px; margin-top:14px;">
+              <div style="font-size:12px; color:#8593A3; margin-bottom:4px;">
+                {{ reporte.creado_en|date:"d M, H:i" }}
+                {% if reporte.tecnico %} — {{ reporte.tecnico.get_full_name|default:reporte.tecnico.username }}{% endif %}
+              </div>
+              <div style="font-size:14px;">{{ reporte.descripcion }}</div>
+            </div>
+          {% empty %}
+            <p style="color:#8593A3; font-size:14px;">Aún no hay reportes registrados.</p>
+          {% endfor %}
+        </div>
+      </div>
+
+      {% if user.es_tecnico and equipo.estado == 'MESA_TRABAJO' %}
+        <form method="post" action="{% url 'equipos:notificar_reparado' equipo.id %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-amber">Notificar equipo reparado</button>
+        </form>
+      {% endif %}
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h3>Datos del equipo</h3></div>
+      <div class="panel-body" style="display:flex; flex-direction:column; gap:14px;">
+        <div>
+          <div style="font-size:11px; text-transform:uppercase; color:#8593A3; font-weight:600; margin-bottom:3px;">Fecha de compra</div>
+          <div style="font-size:14px;">{{ equipo.fecha_compra|date:"d M Y"|default:"No especificada" }}</div>
+        </div>
+        <div>
+          <div style="font-size:11px; text-transform:uppercase; color:#8593A3; font-weight:600; margin-bottom:3px;">Garantía</div>
+          <div style="font-size:14px;">
+            {% if equipo.tiene_garantia %}
+              <span class="badge b-garantia">Vigente hasta {{ equipo.garantia_hasta|date:"m/Y" }}</span>
+            {% else %}
+              Sin garantía
+            {% endif %}
+          </div>
+        </div>
+        {% if user.es_tecnico or user.es_administrador %}
+        <div>
+          <div style="font-size:11px; text-transform:uppercase; color:#8593A3; font-weight:600; margin-bottom:3px;">Contraseña del equipo</div>
+          {% if equipo.tiene_password %}
+            <details>
+              <summary style="cursor:pointer; font-size:13px; color:var(--naranja-oscuro); font-weight:600;">Mostrar contraseña</summary>
+              <div class="mono" style="margin-top:8px; background:var(--fondo-2); padding:8px 12px; border-radius:8px;">{{ equipo_password }}</div>
+            </details>
+          {% else %}
+            <div style="font-size:14px; color:#8593A3;">No registrada</div>
+          {% endif %}
+        </div>
+        {% endif %}
+        <div>
+          <div style="font-size:11px; text-transform:uppercase; color:#8593A3; font-weight:600; margin-bottom:3px;">Estado físico al ingresar</div>
+          <div style="font-size:14px; line-height:1.5;">{{ equipo.estado_fisico }}</div>
+        </div>
+        <div>
+          <div style="font-size:11px; text-transform:uppercase; color:#8593A3; font-weight:600; margin-bottom:3px;">Accesorios entregados</div>
+          <div style="font-size:14px;">{{ equipo.accesorios|default:"Ninguno" }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

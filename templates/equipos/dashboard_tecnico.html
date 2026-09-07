@@ -1,0 +1,62 @@
+{% extends 'equipos/base_staff.html' %}
+
+{% block title %}Mis equipos — Taller Familiar{% endblock %}
+
+{% block content %}
+  <div class="page-head">
+    <div>
+      <h1>Mis equipos</h1>
+      <p>Equipos asignados a ti actualmente</p>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <h3>En mesa de trabajo</h3>
+    </div>
+    {% if equipos %}
+      <table>
+        <thead>
+          <tr>
+            <th>Orden</th>
+            <th>Cliente</th>
+            <th>Equipo</th>
+            <th>Estado</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for equipo in equipos %}
+            <tr>
+              <td class="mono">{{ equipo.numero_orden }}</td>
+              <td class="cliente-cell">
+                <span class="nombre">{{ equipo.cliente.nombre_completo }}</span>
+                <span class="cedula">{{ equipo.cliente.cedula }}</span>
+              </td>
+              <td>
+                {{ equipo.marca }} {{ equipo.modelo }}
+                {% if equipo.tiene_garantia %}
+                  <span class="badge b-garantia">Garantía</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if equipo.estado == 'MESA_TRABAJO' %}
+                  <span class="badge b-mesa"><span class="badge-dot"></span>Mesa de trabajo</span>
+                {% elif equipo.estado == 'REPARADO' %}
+                  <span class="badge b-reparado"><span class="badge-dot"></span>Reparado</span>
+                {% endif %}
+              </td>
+              <td>
+                <a href="{% url 'equipos:detalle_equipo' equipo.id %}" class="btn btn-ghost btn-sm">Ver</a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="empty-state">
+        <p>No tienes equipos asignados por el momento.</p>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}

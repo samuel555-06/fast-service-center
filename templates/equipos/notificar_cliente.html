@@ -1,0 +1,31 @@
+{% extends 'equipos/base_staff.html' %}
+
+{% block title %}Notificar cliente — Taller Familiar{% endblock %}
+
+{% block content %}
+  <div class="page-head">
+    <div>
+      <h1>Notificar cliente</h1>
+      <p>Orden <span class="mono">{{ equipo.numero_orden }}</span> — {{ equipo.cliente.nombre_completo }}</p>
+    </div>
+  </div>
+
+  <div class="panel" style="max-width:520px;">
+    <div class="panel-head"><h3>{{ equipo.marca }} {{ equipo.modelo }}</h3></div>
+    <div class="panel-body">
+      <p style="font-size:14px; line-height:1.6;">
+        El equipo está marcado como <strong>Reparado</strong>. Al confirmar, se marcará como
+        <strong>Entregado</strong> y quedará registrado que el cliente fue notificado.
+      </p>
+      <p style="font-size:13px; color:#8593A3;">
+        Teléfono del cliente: {{ equipo.cliente.telefono }}
+      </p>
+
+      <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-amber">Confirmar notificación y entrega</button>
+        <a href="{% url 'equipos:dashboard_admin' %}" class="btn btn-ghost">Cancelar</a>
+      </form>
+    </div>
+  </div>
+{% endblock %}

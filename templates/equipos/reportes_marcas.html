@@ -1,0 +1,50 @@
+{% extends 'equipos/base_staff.html' %}
+
+{% block title %}Reportes por marca — Taller Familiar{% endblock %}
+
+{% block content %}
+  <div class="page-head">
+    <div>
+      <h1>Reportes por marca</h1>
+      <p>Fallas registradas en los últimos 30 días, agrupadas por marca</p>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <h3>Marcas con equipos recientes</h3>
+    </div>
+    {% if marcas %}
+      <table>
+        <thead>
+          <tr>
+            <th>Marca</th>
+            <th>Equipos en el período</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in marcas %}
+            <tr>
+              <td style="font-weight:600;">{{ item.marca }}</td>
+              <td>{{ item.total }} equipo{{ item.total|pluralize }}</td>
+              <td>
+                <a href="{% url 'equipos:descargar_reporte_marca' item.marca %}" class="btn btn-ghost btn-sm">
+                  Generar reporte
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="empty-state">
+        <p>No hay equipos registrados en los últimos 30 días.</p>
+      </div>
+    {% endif %}
+  </div>
+
+  <p style="font-size:12px; color:#8593A3; margin-top:16px;">
+    Estos reportes se envían a cada marca para que atiendan patrones de fallas de fábrica.
+  </p>
+{% endblock %}

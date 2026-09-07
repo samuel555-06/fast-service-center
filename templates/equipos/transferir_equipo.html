@@ -1,0 +1,36 @@
+{% extends 'equipos/base_staff.html' %}
+
+{% block title %}Transferir equipo — Taller Familiar{% endblock %}
+
+{% block content %}
+  <div class="page-head">
+    <div>
+      <h1>Transferir equipo</h1>
+      <p>Orden <span class="mono">{{ equipo.numero_orden }}</span> — {{ equipo.cliente.nombre_completo }}</p>
+    </div>
+  </div>
+
+  <div class="panel" style="max-width:520px;">
+    <div class="panel-head"><h3>{{ equipo.marca }} {{ equipo.modelo }}</h3></div>
+    <div class="panel-body">
+      <p style="font-size:14px; color:#5C6B7D; margin-top:0;">
+        Falla reportada: {{ equipo.falla_reportada }}
+      </p>
+
+      <form method="post">
+        {% csrf_token %}
+        <div class="field">
+          <label for="tecnico_id">Asignar a técnico</label>
+          <select name="tecnico_id" id="tecnico_id" required>
+            <option value="">Selecciona un técnico...</option>
+            {% for tecnico in tecnicos %}
+              <option value="{{ tecnico.id }}">{{ tecnico.get_full_name|default:tecnico.username }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <button type="submit" class="btn btn-amber">Transferir a mesa de trabajo</button>
+        <a href="{% url 'equipos:dashboard_admin' %}" class="btn btn-ghost">Cancelar</a>
+      </form>
+    </div>
+  </div>
+{% endblock %}
